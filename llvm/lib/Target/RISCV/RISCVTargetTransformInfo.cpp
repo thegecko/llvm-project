@@ -45,8 +45,7 @@ InstructionCost RISCVTTIImpl::getIntImmCost(const APInt &Imm, Type *Ty,
 
   // Otherwise, we check how many instructions it will take to materialise.
   const DataLayout &DL = getDataLayout();
-  return RISCVMatInt::getIntMatCost(Imm, DL.getTypeSizeInBits(Ty),
-                                    getST()->getFeatureBits());
+  return RISCVMatInt::getIntMatCost(Imm, DL.getTypeSizeInBits(Ty), *getST());
 }
 
 // Look for patterns of shift followed by AND that can be turned into a pair of
@@ -173,7 +172,9 @@ RISCVTTIImpl::getIntImmCostIntrin(Intrinsic::ID IID, unsigned Idx,
 TargetTransformInfo::PopcntSupportKind
 RISCVTTIImpl::getPopcntSupport(unsigned TyWidth) {
   assert(isPowerOf2_32(TyWidth) && "Ty width must be power of 2");
-  return ST->hasStdExtZbb() ? TTI::PSK_FastHardware : TTI::PSK_Software;
+  return ST->hasStdExtZbb() || ST->hasVendorXCVbitmanip()
+             ? TTI::PSK_FastHardware
+             : TTI::PSK_Software;
 }
 
 bool RISCVTTIImpl::shouldExpandReduction(const IntrinsicInst *II) const {

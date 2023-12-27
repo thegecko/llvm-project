@@ -28,11 +28,9 @@
 namespace llvm {
 
 class GISelChangeObserver;
-class APFloat;
 class APInt;
 class ConstantFP;
 class GPtrAdd;
-class GStore;
 class GZExtLoad;
 class MachineIRBuilder;
 class MachineInstrBuilder;
@@ -195,6 +193,10 @@ public:
 
   /// Match (and (load x), mask) -> zextload x
   bool matchCombineLoadWithAndMask(MachineInstr &MI, BuildFnTy &MatchInfo);
+
+  /// Combine a G_EXTRACT_VECTOR_ELT of a load into a narrowed
+  /// load.
+  bool matchCombineExtractedVectorLoad(MachineInstr &MI, BuildFnTy &MatchInfo);
 
   bool matchCombineIndexedLoadStore(MachineInstr &MI, IndexedLoadStoreMatchInfo &MatchInfo);
   void applyCombineIndexedLoadStore(MachineInstr &MI, IndexedLoadStoreMatchInfo &MatchInfo);
@@ -404,9 +406,6 @@ public:
                                 std::pair<MachineInstr *, LLT> &MatchInfo);
   void applyCombineTruncOfShift(MachineInstr &MI,
                                 std::pair<MachineInstr *, LLT> &MatchInfo);
-
-  /// Transform G_MUL(x, -1) to G_SUB(0, x)
-  void applyCombineMulByNegativeOne(MachineInstr &MI);
 
   /// Return true if any explicit use operand on \p MI is defined by a
   /// G_IMPLICIT_DEF.
